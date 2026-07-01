@@ -242,7 +242,9 @@ function App() {
           "fldssquZl10HwgBhV":parseInt(sqft),"fld4ctAAU1rb5TE0E":pkg,"fld4f9gD3D82tqZLH":addons,
           "fldhePrndj5SNmhdt":access,"fldC4ZiMVLdJ6ae8s":lockbox,"fld4TxMxCjxVwuVkz":prefDate,
           "fldaPvt4j7VrqySNJ":total,"fld1pqCxNrXYaJ91h":driveInfo?.mins||30,"fld8xdmrEuTqd2Q0s":fubId,
-          "fldayzJgoMe1tMmKS":new Date().toISOString()
+          "fldayzJgoMe1tMmKS":new Date().toISOString(),
+          "fld82FkbGLrnJlN4N":new Date(prefDate+"T"+selectedSlot+":00-04:00").toISOString(),
+          "fldPvEA0nJSo30nLd":new Date(prefDate+"T"+slotEnd(selectedSlot,total)+":00-04:00").toISOString()
         }}]})
       });
     } catch(_){}
