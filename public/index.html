@@ -8,6 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:system-ui,-apple-system,sans-serif;background:#f8fafc;min-height:100vh;padding:24px 16px;}@keyframes spin{to{transform:rotate(360deg);}}</style>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCx9nvzU8m7RlpIREuvNXT9o-pcGkK7lNI&libraries=places" async></script>
 </head>
 <body>
 <div id="root"></div>
@@ -129,6 +130,7 @@ function App() {
   const [zip,setZip]=useState("");
   const [access,setAccess]=useState("");
   const [lockbox,setLockbox]=useState("");
+  const [state,setState]=useState("NJ");
   const [fubId,setFubId]=useState("");
   const [sqft,setSqft]=useState("");
   const [pkg,setPkg]=useState("");
@@ -238,7 +240,7 @@ function App() {
         body:JSON.stringify({records:[{fields:{
           "fldAfhxf3MMDwjiHR":"Pending Review","fldcdcbcdytMUn8UU":agentName,
           "fldTUOZdYgUyDiGDn":agentEmail,"fldrNMG7JRuGnVxAZ":agentPhone,
-          "fld9iUr9xixprYU0G":address,"fldk8n5BlcHhrfXmn":city,"fldeAALznSycodkjG":zip,
+          "fld9iUr9xixprYU0G":address,"fldk8n5BlcHhrfXmn":city,"fldeAALznSycodkjG":zip,"fldState":state,
           "fldssquZl10HwgBhV":parseInt(sqft),"fld4ctAAU1rb5TE0E":pkg,"fld4f9gD3D82tqZLH":addons,
           "fldhePrndj5SNmhdt":access,"fldC4ZiMVLdJ6ae8s":lockbox,"fld4TxMxCjxVwuVkz":prefDate,
           "fldaPvt4j7VrqySNJ":total,"fld1pqCxNrXYaJ91h":driveInfo?.mins||30,"fld8xdmrEuTqd2Q0s":fubId,
@@ -297,9 +299,43 @@ function App() {
         React.createElement("div",null,React.createElement(Label,null,"Email *"),React.createElement(Input,{value:agentEmail,onChange:setAgentEmail,placeholder:"jane@brokerage.com",type:"email"})),
         React.createElement("div",null,React.createElement(Label,null,"Phone"),React.createElement(Input,{value:agentPhone,onChange:setAgentPhone,placeholder:"(555) 000-0000"}))
       ),
-      React.createElement("div",null,React.createElement(Label,null,"Property address *"),React.createElement(Input,{value:address,onChange:setAddress,placeholder:"123 Main St"})),
-      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 90px",gap:12}},
+      React.createElement("div",null,React.createElement(Label,null,"Property address *"),
+        React.createElement("input",{
+          id:"address-autocomplete",
+          value:address,
+          onChange:e=>setAddress(e.target.value),
+          placeholder:"123 Main St",
+          style:{width:"100%",padding:"10px 12px",border:"1.5px solid #e2e8f0",borderRadius:8,fontSize:14,color:"#1e293b",background:"#fff",outline:"none",boxSizing:"border-box",fontFamily:"inherit"},
+          ref: el => {
+            if (el && !el._autocomplete && typeof google !== "undefined" && google.maps && google.maps.places) {
+              const ac = new google.maps.places.Autocomplete(el, {
+                componentRestrictions: { country: "us" },
+                fields: ["address_components"],
+                types: ["address"]
+              });
+              el._autocomplete = ac;
+              ac.addListener("place_changed", () => {
+                const place = ac.getPlace();
+                const comps = place.address_components || [];
+                const get = (type) => comps.find(c => c.types.includes(type))?.long_name || "";
+                const getShort = (type) => comps.find(c => c.types.includes(type))?.short_name || "";
+                const streetNum = get("street_number");
+                const route = get("route");
+                const locality = get("locality") || get("sublocality");
+                const zip = get("postal_code");
+                const st = getShort("administrative_area_level_1");
+                setAddress(streetNum && route ? streetNum + " " + route : el.value);
+                setCity(locality);
+                setZip(zip);
+                setState(st);
+              });
+            }
+          }
+        })
+      ),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 60px 90px",gap:12}},
         React.createElement("div",null,React.createElement(Label,null,"City *"),React.createElement(Input,{value:city,onChange:setCity,placeholder:"Lakewood"})),
+        React.createElement("div",null,React.createElement(Label,null,"State *"),React.createElement(Input,{value:state,onChange:setState,placeholder:"NJ"})),
         React.createElement("div",null,React.createElement(Label,null,"Zip *"),React.createElement(Input,{value:zip,onChange:setZip,placeholder:"08701"}))
       ),
       React.createElement("div",null,
