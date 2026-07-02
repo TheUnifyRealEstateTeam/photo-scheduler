@@ -49,7 +49,7 @@ const ADDONS = [
 ];
 
 const TIME_SLOTS = [
-  { id: "08:00", label: "8:00 AM" }, { id: "09:00", label: "9:00 AM" },
+  { id: "09:00", label: "9:00 AM" },
   { id: "10:00", label: "10:00 AM" }, { id: "11:00", label: "11:00 AM" },
   { id: "12:00", label: "12:00 PM" }, { id: "13:00", label: "1:00 PM" },
   { id: "14:00", label: "2:00 PM" }, { id: "15:00", label: "3:00 PM" },
@@ -173,7 +173,7 @@ function App() {
         };
       }).filter(r => r && r.dateET === date);
 
-      const WORK_START = "08:00";
+      const WORK_START = "09:00";
       const WORK_END   = "17:00";
 
       // Pre-fetch all drive times between each block and the new property
