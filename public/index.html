@@ -232,6 +232,33 @@ function App() {
 
   useEffect(()=>{ if(prefDate&&total) fetchAvail(prefDate); },[prefDate,total,fetchAvail]);
 
+  useEffect(()=>{
+    function initAutocomplete() {
+      const input = document.getElementById("address-input");
+      if (!input || input._ac) return;
+      if (typeof google === "undefined" || !google.maps || !google.maps.places) return;
+      const ac = new google.maps.places.Autocomplete(input, {
+        componentRestrictions: { country: "us" },
+        fields: ["address_components"],
+        types: ["address"]
+      });
+      input._ac = ac;
+      ac.addListener("place_changed", () => {
+        const place = ac.getPlace();
+        const comps = place.address_components || [];
+        const get = t => comps.find(c=>c.types.includes(t))?.long_name||"";
+        const getS = t => comps.find(c=>c.types.includes(t))?.short_name||"";
+        const num = get("street_number"), route = get("route");
+        setAddress(num&&route ? num+" "+route : input.value);
+        setCity(get("locality")||get("sublocality_level_1"));
+        setZip(get("postal_code"));
+        setState(getS("administrative_area_level_1"));
+      });
+    }
+    const timer = setInterval(()=>{ if(typeof google!=="undefined"&&google.maps?.places){ initAutocomplete(); clearInterval(timer); } },500);
+    return ()=>clearInterval(timer);
+  },[]);
+
   const handleSubmit = async () => {
     if (!s3ok) return;
     try {
@@ -299,40 +326,7 @@ function App() {
         React.createElement("div",null,React.createElement(Label,null,"Email *"),React.createElement(Input,{value:agentEmail,onChange:setAgentEmail,placeholder:"jane@brokerage.com",type:"email"})),
         React.createElement("div",null,React.createElement(Label,null,"Phone"),React.createElement(Input,{value:agentPhone,onChange:setAgentPhone,placeholder:"(555) 000-0000"}))
       ),
-      React.createElement("div",null,React.createElement(Label,null,"Property address *"),
-        React.createElement("input",{
-          id:"address-autocomplete",
-          value:address,
-          onChange:e=>setAddress(e.target.value),
-          placeholder:"123 Main St",
-          style:{width:"100%",padding:"10px 12px",border:"1.5px solid #e2e8f0",borderRadius:8,fontSize:14,color:"#1e293b",background:"#fff",outline:"none",boxSizing:"border-box",fontFamily:"inherit"},
-          ref: el => {
-            if (el && !el._autocomplete && typeof google !== "undefined" && google.maps && google.maps.places) {
-              const ac = new google.maps.places.Autocomplete(el, {
-                componentRestrictions: { country: "us" },
-                fields: ["address_components"],
-                types: ["address"]
-              });
-              el._autocomplete = ac;
-              ac.addListener("place_changed", () => {
-                const place = ac.getPlace();
-                const comps = place.address_components || [];
-                const get = (type) => comps.find(c => c.types.includes(type))?.long_name || "";
-                const getShort = (type) => comps.find(c => c.types.includes(type))?.short_name || "";
-                const streetNum = get("street_number");
-                const route = get("route");
-                const locality = get("locality") || get("sublocality");
-                const zip = get("postal_code");
-                const st = getShort("administrative_area_level_1");
-                setAddress(streetNum && route ? streetNum + " " + route : el.value);
-                setCity(locality);
-                setZip(zip);
-                setState(st);
-              });
-            }
-          }
-        })
-      ),
+      React.createElement("div",null,React.createElement(Label,null,"Property address *"),React.createElement("input",{id:"address-input",value:address,onChange:e=>setAddress(e.target.value),placeholder:"123 Main St",style:{width:"100%",padding:"10px 12px",border:"1.5px solid #e2e8f0",borderRadius:8,fontSize:14,color:"#1e293b",background:"#fff",outline:"none",boxSizing:"border-box",fontFamily:"inherit"}})),
       React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 60px 90px",gap:12}},
         React.createElement("div",null,React.createElement(Label,null,"City *"),React.createElement(Input,{value:city,onChange:setCity,placeholder:"Lakewood"})),
         React.createElement("div",null,React.createElement(Label,null,"State *"),React.createElement(Input,{value:state,onChange:setState,placeholder:"NJ"})),
