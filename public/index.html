@@ -4,11 +4,11 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Listing Photography Scheduler</title>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCx9nvzU8m7RlpIREuvNXT9o-pcGkK7lNI&libraries=places"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:system-ui,-apple-system,sans-serif;background:#f8fafc;min-height:100vh;padding:24px 16px;}@keyframes spin{to{transform:rotate(360deg);}}</style>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCx9nvzU8m7RlpIREuvNXT9o-pcGkK7lNI&libraries=places" async></script>
 </head>
 <body>
 <div id="root"></div>
@@ -232,32 +232,6 @@ function App() {
 
   useEffect(()=>{ if(prefDate&&total) fetchAvail(prefDate); },[prefDate,total,fetchAvail]);
 
-  useEffect(()=>{
-    function initAutocomplete() {
-      const input = document.getElementById("address-input");
-      if (!input || input._ac) return;
-      if (typeof google === "undefined" || !google.maps || !google.maps.places) return;
-      const ac = new google.maps.places.Autocomplete(input, {
-        componentRestrictions: { country: "us" },
-        fields: ["address_components"],
-        types: ["address"]
-      });
-      input._ac = ac;
-      ac.addListener("place_changed", () => {
-        const place = ac.getPlace();
-        const comps = place.address_components || [];
-        const get = t => comps.find(c=>c.types.includes(t))?.long_name||"";
-        const getS = t => comps.find(c=>c.types.includes(t))?.short_name||"";
-        const num = get("street_number"), route = get("route");
-        setAddress(num&&route ? num+" "+route : input.value);
-        setCity(get("locality")||get("sublocality_level_1"));
-        setZip(get("postal_code"));
-        setState(getS("administrative_area_level_1"));
-      });
-    }
-    const timer = setInterval(()=>{ if(typeof google!=="undefined"&&google.maps?.places){ initAutocomplete(); clearInterval(timer); } },500);
-    return ()=>clearInterval(timer);
-  },[]);
 
   const handleSubmit = async () => {
     if (!s3ok) return;
@@ -326,7 +300,37 @@ function App() {
         React.createElement("div",null,React.createElement(Label,null,"Email *"),React.createElement(Input,{value:agentEmail,onChange:setAgentEmail,placeholder:"jane@brokerage.com",type:"email"})),
         React.createElement("div",null,React.createElement(Label,null,"Phone"),React.createElement(Input,{value:agentPhone,onChange:setAgentPhone,placeholder:"(555) 000-0000"}))
       ),
-      React.createElement("div",null,React.createElement(Label,null,"Property address *"),React.createElement("input",{id:"address-input",value:address,onChange:e=>setAddress(e.target.value),placeholder:"123 Main St",style:{width:"100%",padding:"10px 12px",border:"1.5px solid #e2e8f0",borderRadius:8,fontSize:14,color:"#1e293b",background:"#fff",outline:"none",boxSizing:"border-box",fontFamily:"inherit"}})),
+      React.createElement("div",null,React.createElement(Label,null,"Property address *"),React.createElement("div",{style:{position:"relative"}},
+        React.createElement("input",{
+          id:"addr-input",
+          value:address,
+          onChange:e=>{
+            setAddress(e.target.value);
+          },
+          onFocus:e=>{
+            if(window._addrAC) return;
+            if(typeof google==="undefined"||!google.maps||!google.maps.places) return;
+            const ac=new google.maps.places.Autocomplete(e.target,{
+              componentRestrictions:{country:"us"},
+              fields:["address_components"],
+              types:["address"]
+            });
+            window._addrAC=ac;
+            ac.addListener("place_changed",()=>{
+              const place=ac.getPlace();
+              const comps=place.address_components||[];
+              const get=t=>comps.find(c=>c.types.includes(t))?.long_name||"";
+              const getS=t=>comps.find(c=>c.types.includes(t))?.short_name||"";
+              setAddress((get("street_number")+" "+get("route")).trim());
+              setCity(get("locality")||get("sublocality_level_1"));
+              setZip(get("postal_code"));
+              setState(getS("administrative_area_level_1"));
+            });
+          },
+          placeholder:"123 Main St",
+          style:{width:"100%",padding:"10px 12px",border:"1.5px solid #e2e8f0",borderRadius:8,fontSize:14,color:"#1e293b",background:"#fff",outline:"none",boxSizing:"border-box",fontFamily:"inherit"}
+        })
+      )),
       React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 60px 90px",gap:12}},
         React.createElement("div",null,React.createElement(Label,null,"City *"),React.createElement(Input,{value:city,onChange:setCity,placeholder:"Lakewood"})),
         React.createElement("div",null,React.createElement(Label,null,"State *"),React.createElement(Input,{value:state,onChange:setState,placeholder:"NJ"})),
