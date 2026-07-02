@@ -238,13 +238,15 @@ function App() {
       await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_SHOOTS_TABLE}`,{
         method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${AIRTABLE_KEY}`},
         body:JSON.stringify({records:[{fields:{
-          "fldAfhxf3MMDwjiHR":"Pending Review","fldcdcbcdytMUn8UU":agentName,
-          "fldTUOZdYgUyDiGDn":agentEmail,"fldrNMG7JRuGnVxAZ":agentPhone,
-          "fld9iUr9xixprYU0G":address,"fldk8n5BlcHhrfXmn":city,"fldeAALznSycodkjG":zip,"fldState":state,
-          "fldssquZl10HwgBhV":parseInt(sqft),"fld4ctAAU1rb5TE0E":pkg,"fld4f9gD3D82tqZLH":addons,
-          "fldhePrndj5SNmhdt":access,"fldC4ZiMVLdJ6ae8s":lockbox,"fld4TxMxCjxVwuVkz":prefDate,
-          "fldaPvt4j7VrqySNJ":total,"fld1pqCxNrXYaJ91h":driveInfo?.mins||30,"fld8xdmrEuTqd2Q0s":fubId,
-          "fldayzJgoMe1tMmKS":new Date().toISOString(),
+          "fldAfhxf3MMDwjiHR":"Pending Review",
+          "fldcdcbcdytMUn8UU":agentName,
+          "fldTUOZdYgUyDiGDn":agentEmail,
+          "fld9iUr9xixprYU0G":address,
+          "fldk8n5BlcHhrfXmn":city,
+          "fldeAALznSycodkjG":zip,
+          "fld4ctAAU1rb5TE0E":pkg,
+          "fldaPvt4j7VrqySNJ":total,
+          "fldV720In3zlEzxxP":"Phone: "+agentPhone+" | Sqft: "+sqft+" | State: "+state+" | Date: "+prefDate+" | Drive: "+(driveInfo?.mins||30)+"min | Access: "+access+" | Lockbox: "+lockbox,
           "fld82FkbGLrnJlN4N":new Date(prefDate+"T"+selectedSlot+":00-04:00").toISOString(),
           "fldPvEA0nJSo30nLd":new Date(prefDate+"T"+slotEnd(selectedSlot,total)+":00-04:00").toISOString()
         }}]})
